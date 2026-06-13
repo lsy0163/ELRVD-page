@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="RViDeNet-ECBAM architecture and training: pre-denoising, per-channel alignment / non-local attention / temporal fusion, spatial fusion, and the ECBAM (ESA) attention block; 3-stage training and sequential fine-tuning.">
+<title>Method · RViDeNet-ECBAM</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="dot"></span> <span>EL<b>RVD</b></span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="method.html" class="active">Method</a>
+      <a href="results.html">Results</a>
+      <a href="gallery.html">Gallery</a>
+      <span class="nav-sep"></span>
+      <a href="https://github.com/lsy0163/ELRVD" class="ext" target="_blank" rel="noopener">GitHub</a>
+      <a href="KCC_26.pdf" class="ext" target="_blank" rel="noopener">Paper</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- PAGE HEAD -->
+  <div class="page-head reveal">
+    <div class="eyebrow">Method</div>
+    <h1>RViDeNet-ECBAM</h1>
+    <p class="lede">A RAW video denoiser that takes three consecutive noisy Bayer frames and reconstructs the clean RAW of the center frame &mdash; with an attention block redesigned for the globally-distributed noise of extreme low light.</p>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <section class="reveal">
+    <div class="section-label">Architecture</div>
+    <h2>Overall structure</h2>
+    <p>The network takes consecutive noisy Bayer RAW frames <em>I<sup>n</sup><sub>[t&minus;1:t+1]</sub></em> and outputs the denoised RAW frame <em>O<sup>raw</sup><sub>t</sub></em> for the center frame. It is organised into six stages:</p>
+
+    <figure class="fig padded">
+      <img src="assets/img/architecture_rvidenet_ecbam.png" alt="RViDeNet-ECBAM architecture diagram">
+      <figcaption><b>Figure 1.</b> RViDeNet-ECBAM. A frozen pre-denoising module guides deformable alignment offsets; the input is packed into four Bayer sub-frames (R / G1 / G2 / B) that pass through shared-weight Alignment &rarr; Non-Local Attention &rarr; Temporal Fusion paths, followed by Spatial Fusion, the <b>ECBAM</b> attention block, and a global residual connection.</figcaption>
+    </figure>
+
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><div class="t">Pre-Denoising</div><p>A pretrained, then frozen module lightly denoises the input so that motion/alignment offsets are estimated from clean-ish features, not raw noise.</p></div></div>
+      <div class="step"><div class="n">2</div><div><div class="t">Packing</div><p>Noisy and pre-denoised frames are split by Bayer pattern into four colour sub-frames (R, G1, G2, B). For the IMX327 sensor used here the pattern is <b>RGGB</b>.</p></div></div>
+      <div class="step"><div class="n">3</div><div><div class="t">Alignment &middot; Non-Local Attention &middot; Temporal Fusion</div><p>The four channels run a shared-weight path: pyramidal deformable alignment, global spatio-temporal attention, then confidence-weighted temporal fusion of the three frames.</p></div></div>
+      <div class="step"><div class="n">4</div><div><div class="t">Spatial Fusion</div><p>The fused channels are concatenated and passed through a 10-residual-block reconstruction trunk that exploits cross-channel correlation.</p></div></div>
+      <div class="step"><div class="n">5</div><div><div class="t">ECBAM <b>(our change)</b></div><p>Channel attention + Enhanced Spatial Attention, replacing CBAM's 7&times;7 spatial attention with a downsampled, large-receptive-field mask.</p></div></div>
+      <div class="step"><div class="n">6</div><div><div class="t">Global Residual</div><p>A final 3&times;3 conv produces a 4-channel RAW residual; the center noisy frame is added back to yield the denoised RAW output.</p></div></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- PRE-DENOISING + PACKING -->
+  <section class="reveal">
+    <div class="section-label">Stages 1&ndash;2</div>
+    <h2>Pre-denoising &amp; packing</h2>
+    <p>The noisy RAW frames first pass through a <strong>pre-denoising module</strong> whose parameters are frozen after pretraining. Its output is <em>not</em> used directly in the final restoration; instead it guides <strong>deformable-convolution offset estimation</strong> during alignment. In extreme low light, feeding heavy noise straight into offset estimation destabilises frame-to-frame registration, so estimating motion from denoised features makes alignment more reliable.</p>
+    <p>Packing then splits each noisy and pre-denoised frame into four colour channels following the Bayer layout. Because the IMX327 sensor is <strong>RGGB</strong>, each frame becomes an R / G1 / G2 / B set of sub-frames fed into per-channel paths.</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- CHANNEL PROCESSING -->
+  <section class="reveal">
+    <div class="section-label">Stage 3</div>
+    <h2>Per-channel processing</h2>
+    <p>The four packed channels run in parallel through an identical, weight-shared path of three modules:</p>
+    <h4>Alignment</h4>
+    <p>A pyramidal deformable-convolution module aligns neighbouring frames (<em>t&minus;1, t+1</em>) to the center frame. Offsets are estimated from the <strong>pre-denoised</strong> features but applied to the <strong>noisy</strong> features, over a 3-level (full / &frac12; / &frac14;) coarse-to-fine pyramid that compensates both large and fine motion.</p>
+    <h4>Non-Local Attention</h4>
+    <p>Computes global spatio-temporal correlations between aligned frame features, capturing long-range dependencies that local convolutions miss. Regions whose local information is destroyed by noise can be restored by referencing similar patterns at other positions and in other frames.</p>
+    <h4>Temporal Fusion</h4>
+    <p>Temporal and spatial attention weight the three frames by per-frame reliability and merge them into a single feature map &mdash; high weight where alignment is accurate, low weight where alignment error is large &mdash; suppressing ghosting in moving scenes.</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ECBAM -->
+  <section class="reveal">
+    <div class="section-label">Stages 4&ndash;5 &middot; Core contribution</div>
+    <h2>Spatial fusion &amp; the ECBAM block</h2>
+    <p>The four fused channels are concatenated and passed through <strong>Spatial Fusion</strong>, a reconstruction trunk of 10 residual blocks. The attention block applied to its output is the heart of this project.</p>
+
+    <div class="card">
+      <h3>Why CBAM falls short in extreme low light</h3>
+      <p>The original RViDeNet uses <strong>CBAM</strong> here &mdash; channel attention followed by a 7&times;7-convolution spatial attention. That spatial attention is limited to a <strong>7&times;7 receptive field</strong>. In extreme low light, noise is distributed almost uniformly across the whole frame, and a narrow receptive field cannot reliably tell flat noisy regions apart from the structures that must be preserved.</p>
+    </div>
+
+    <div class="card accent">
+      <h3>ECBAM = channel attention + Enhanced Spatial Attention (ESA)</h3>
+      <p>We keep CBAM's channel attention (average/max pooling + shared MLP) but replace the spatial attention with <strong>ESA</strong>:</p>
+      <ul class="bullets">
+        <li>A <strong>1&times;1 conv</strong> reduces channels to &frac14; to cut compute.</li>
+        <li><strong>Stride-2 conv</strong> + <strong>7&times;7 max-pool (stride 3)</strong> heavily downsample the feature map. Convolving on this shrunken map aggregates context from a much wider region of the original resolution with the same kernel size.</li>
+        <li><strong>Bilinear upsampling</strong> restores resolution; a <strong>1&times;1-conv skip</strong> branched before downsampling is added back to recover fine positional detail.</li>
+        <li>A final <strong>1&times;1 conv + sigmoid</strong> produces the spatial attention mask, multiplied element-wise into the input features.</li>
+      </ul>
+    </div>
+
+    <h4>Why it helps</h4>
+    <ul class="bullets">
+      <li><strong>Wide receptive field.</strong> The mask is built on downsampled features, reflecting far more global context than a 7&times;7 conv &mdash; so globally-distributed low-light noise and object structure can be separated by global context, suppressing flat-region noise while preserving edges.</li>
+      <li><strong>Cheap.</strong> Spatial attention runs on a &frac14;-channel, low-resolution map, so enlarging the receptive field adds little compute.</li>
+      <li><strong>Detail-aware.</strong> The 1&times;1-conv skip restores positional detail lost in downsampling, combining wide context with precise boundaries.</li>
+    </ul>
+    <p>In our experiments, RViDeNet-ECBAM gives <strong>consistent PSNR/SSIM gains on every self-captured scene</strong> and the best temporal consistency (tOF) among all compared methods &mdash; evidence that the wide-receptive-field spatial attention is effective against global low-light noise.</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- GLOBAL RESIDUAL -->
+  <section class="reveal">
+    <div class="section-label">Stage 6</div>
+    <h2>Global residual &amp; output</h2>
+    <p>A final 3&times;3 convolution turns the ECBAM features into a 4-channel RAW residual, and the center noisy frame is added back as a <strong>global residual</strong> to form the denoised RAW output <em>O<sup>raw</sup><sub>t</sub></em>. Learning only the noise residual (rather than the whole signal) stabilises training and passes the input's structure straight through to the output, helping fine-detail preservation.</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- CHANGES TABLE -->
+  <section class="reveal">
+    <div class="section-label">Summary</div>
+    <h2>Changes vs. the original RViDeNet</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Aspect</th><th>Original RViDeNet</th><th>This project (RViDeNet-ECBAM)</th></tr></thead>
+        <tbody>
+          <tr><td>Attention block</td><td>CBAM (channel + 7&times;7 conv spatial)</td><td class="best">ECBAM (channel + ESA)</td></tr>
+          <tr><td>Spatial-attention receptive field</td><td>Limited to 7&times;7 kernel</td><td class="best">Greatly enlarged (strided conv + max-pool downsampling)</td></tr>
+          <tr><td>Bayer packing</td><td>GBRG (CRVD)</td><td>GBRG + RGGB (IMX327)</td></tr>
+          <tr><td>Synthetic noise model</td><td>Poisson + Gaussian</td><td>Poisson + Gaussian + row noise + quantization noise</td></tr>
+          <tr><td>Fine-tuning LR</td><td>Single LR</td><td>Layer-wise (backbone 1e&minus;6 / recon&middot;ECBAM&middot;output 1e&minus;5)</td></tr>
+          <tr><td>Inference</td><td>CRVD evaluation script</td><td>Full-resolution tiled inference pipeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- DATASETS -->
+  <section class="reveal">
+    <div class="section-label">Data</div>
+    <h2>Datasets</h2>
+    <p>CRVD and the self-captured low-light RAW set are used for sequential fine-tuning; ReCRVD is held out to test generalization under conditions different from training.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Dataset</th><th>Composition</th><th>GT generation</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>CRVD</td><td>11 indoor scenes &times; 5 ISO (1600&ndash;25600), 55 scenes &times; 7 frames</td><td>Average of repeated noisy RAW per position (ISO&nbsp;25600: 500-shot avg + BM3D)</td><td>Fine-tuning (stage&nbsp;3-1)</td></tr>
+          <tr class="highlight"><td>Self-captured low-light RAW</td><td>0.1&nbsp;lux, 12 scenes &times; 60 frames, IMX327 RAW</td><td>~100-shot average per frame position, no extra post-processing</td><td>Fine-tuning + validation (stage&nbsp;3-2)</td></tr>
+          <tr><td>ReCRVD</td><td>4K-screen re-capture, 120 scenes</td><td>High-ISO noisy &times;10 + ISO&nbsp;100 long-exposure clean &times;1</td><td>External generalization test</td></tr>
+        </tbody>
+      </table>
+      <p class="table-note">The self-captured 0.1&nbsp;lux RAW set is the lab's private, non-public dataset; it is not released.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- TRAINING -->
+  <section class="reveal">
+    <div class="section-label">Training</div>
+    <h2>Three-stage strategy</h2>
+    <p>Training all of the network from scratch on real low-light RAW alone is unstable, so the model first learns basic restoration on synthetic data and is then gradually adapted to real sensor noise. Every stage uses the ECBAM-equipped model.</p>
+
+    <h3>Stage 1 &middot; Pre-denoising pretraining</h3>
+    <p>The pre-denoising module is pretrained on synthetic noisy&ndash;clean pairs (230 clean SID RAW images + Poisson&ndash;Gaussian noise) and then <strong>frozen</strong>. It exists only to give deformable alignment a stable, denoised guide for offset estimation.</p>
+
+    <h3>Stage 2 &middot; RViDeNet pretraining</h3>
+    <p>Real noisy&ndash;clean RAW video of diverse moving objects is hard to capture, so synthetic RAW video is built from four MOTChallenge sRGB clips via image unprocessing, then corrupted with the RAW noise model. The base model is shot noise as Poisson, read noise as Gaussian:</p>
+    <div class="formula">x<sub>p</sub> &nbsp;~&nbsp; &sigma;<sub>s</sub><sup>2</sup>&thinsp;P(y<sub>p</sub> / &sigma;<sub>s</sub><sup>2</sup>) &nbsp;+&nbsp; N(0, &sigma;<sub>r</sub><sup>2</sup>)</div>
+    <p>We extend it with <strong>row noise and ADC quantization noise</strong> observed in real CMOS sensors, narrowing the gap to real sensor-noise distributions. The loss is RAW reconstruction only:</p>
+    <div class="formula">&#8466; = &#8214; I<sub>t</sub><sup>raw</sup> &minus; O<sub>t</sub><sup>raw</sup> &#8214;<sub>1</sub></div>
+    <p>Learning rate starts at 1e&minus;4, drops to 1e&minus;5 after 20 epochs, converging at epoch 33.</p>
+
+    <h3>Stage 3 &middot; Sequential fine-tuning</h3>
+    <p>Starting from the pretrained model, we fine-tune on <strong>CRVD first, then the self-captured 0.1&nbsp;lux set</strong>, on 256&times;256 patches. The loss adds a temporal consistency term (no sRGB loss):</p>
+    <div class="formula">
+      &#8466; = &#8466;<sub>rec</sub> + &lambda;&#8466;<sub>tmp</sub><br>
+      &#8466;<sub>rec</sub> = &#8214; I<sub>t</sub><sup>raw</sup> &minus; O<sub>t</sub><sup>raw</sup> &#8214;<sub>1</sub><br>
+      &#8466;<sub>tmp</sub> = &#8214; &Ocirc;<sub>t</sub><sup>raw1</sup> &minus; &Ocirc;<sub>t</sub><sup>raw2</sup> &#8214;<sub>1</sub> + &gamma;(&#8214; I<sub>t</sub><sup>raw</sup> &minus; &Ocirc;<sub>t</sub><sup>raw1</sup> &#8214;<sub>1</sub> + &#8214; I<sub>t</sub><sup>raw</sup> &minus; &Ocirc;<sub>t</sub><sup>raw2</sup> &#8214;<sub>1</sub>)
+    </div>
+    <p>Here <em>&Ocirc;<sup>raw1</sup></em> and <em>&Ocirc;<sup>raw2</sup></em> are two outputs for the same frame from different noisy-sample combinations; forcing them to agree suppresses frame-to-frame flickering. We set <strong>&lambda;&nbsp;=&nbsp;1, &gamma;&nbsp;=&nbsp;0.1</strong>.</p>
+    <ul class="bullets">
+      <li><strong>3-1 &middot; CRVD (LR 1e&minus;5).</strong> Adapts the synthetic-trained model to real captured RAW. CRVD's GBRG pattern is packed in G, B, R, G order.</li>
+      <li><strong>3-2 &middot; Self-captured 0.1&nbsp;lux (layer-wise LR).</strong> Final tuning to IMX327 noise, Bayer (RGGB &rarr; packed R, G, G, B) and extreme-low-light characteristics. The backbone uses <strong>1e&minus;6</strong> to preserve CRVD-acquired noise adaptation, while the reconstruction trunk, ECBAM and output conv use <strong>1e&minus;5</strong> so adaptation concentrates in the restoration stage.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a class="btn" href="results.html">Results &rarr;</a>
+      <a class="btn" href="gallery.html">Gallery</a>
+      <a class="btn" href="https://github.com/lsy0163/ELRVD" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <p>Sogang University &middot; Department of Computer Science and Engineering &middot; Capstone 2026</p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

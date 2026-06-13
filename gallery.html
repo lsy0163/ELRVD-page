@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Video gallery: noisy input vs. RViDeNet-ECBAM denoised output across eight self-captured low-light RAW scenes. Drag to compare.">
+<title>Gallery · RViDeNet-ECBAM</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="dot"></span> <span>EL<b>RVD</b></span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="method.html">Method</a>
+      <a href="results.html">Results</a>
+      <a href="gallery.html" class="active">Gallery</a>
+      <span class="nav-sep"></span>
+      <a href="https://github.com/lsy0163/ELRVD" class="ext" target="_blank" rel="noopener">GitHub</a>
+      <a href="KCC_26.pdf" class="ext" target="_blank" rel="noopener">Paper</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="page-head reveal">
+    <div class="eyebrow">Gallery</div>
+    <h1>Noisy vs. denoised</h1>
+    <p class="lede">Side-by-side video comparisons. Each clip shows the raw low-light <strong>noisy input</strong> on the left and our <strong>RViDeNet-ECBAM</strong> output on the right &mdash; <strong>drag the handle</strong> to wipe between them. Videos play only while on screen.</p>
+  </div>
+
+  <!-- SELF-CAPTURED SCENES -->
+  <section class="reveal">
+    <div class="section-label">Self-captured 0.1&nbsp;lux RAW &middot; IMX327</div>
+    <h2>Validation scenes</h2>
+    <div class="gallery">
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">giraffe</span><span class="meta">PSNR +10.6&nbsp;dB</span></div>
+        <div class="ba-slider">
+          <video class="ba-noisy" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene7_giraffe_noisy.mp4"></video>
+          <video class="ba-after" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene7_giraffe_rvidenet.mp4"></video>
+          <span class="ba-label left">Noisy</span><span class="ba-label right">Ours</span>
+          <div class="ba-divider"></div><div class="ba-handle">&#8596;</div>
+        </div>
+      </div>
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">whiteball</span><span class="meta">PSNR +9.8&nbsp;dB</span></div>
+        <div class="ba-slider">
+          <video class="ba-noisy" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene10_whiteball_noisy.mp4"></video>
+          <video class="ba-after" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene10_whiteball_rvidenet.mp4"></video>
+          <span class="ba-label left">Noisy</span><span class="ba-label right">Ours</span>
+          <div class="ba-divider"></div><div class="ba-handle">&#8596;</div>
+        </div>
+      </div>
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">snake</span><span class="meta">PSNR +9.3&nbsp;dB</span></div>
+        <div class="ba-slider">
+          <video class="ba-noisy" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene3_snake_noisy.mp4"></video>
+          <video class="ba-after" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene3_snake_rvidenet.mp4"></video>
+          <span class="ba-label left">Noisy</span><span class="ba-label right">Ours</span>
+          <div class="ba-divider"></div><div class="ba-handle">&#8596;</div>
+        </div>
+      </div>
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">elephant</span><span class="meta">PSNR +9.1&nbsp;dB</span></div>
+        <div class="ba-slider">
+          <video class="ba-noisy" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene4_elephant_noisy.mp4"></video>
+          <video class="ba-after" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene4_elephant_rvidenet.mp4"></video>
+          <span class="ba-label left">Noisy</span><span class="ba-label right">Ours</span>
+          <div class="ba-divider"></div><div class="ba-handle">&#8596;</div>
+        </div>
+      </div>
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">pink</span><span class="meta">PSNR +9.9&nbsp;dB</span></div>
+        <div class="ba-slider">
+          <video class="ba-noisy" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene8_pink_noisy.mp4"></video>
+          <video class="ba-after" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene8_pink_rvidenet.mp4"></video>
+          <span class="ba-label left">Noisy</span><span class="ba-label right">Ours</span>
+          <div class="ba-divider"></div><div class="ba-handle">&#8596;</div>
+        </div>
+      </div>
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">wood</span><span class="meta">PSNR +8.7&nbsp;dB</span></div>
+        <div class="ba-slider">
+          <video class="ba-noisy" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene2_wood_noisy.mp4"></video>
+          <video class="ba-after" data-lazyplay loop muted playsinline preload="none" src="assets/media/scene2_wood_rvidenet.mp4"></video>
+          <span class="ba-label left">Noisy</span><span class="ba-label right">Ours</span>
+          <div class="ba-divider"></div><div class="ba-handle">&#8596;</div>
+        </div>
+      </div>
+
+    </div>
+    <p class="ba-hint" style="margin-top:22px;">PSNR gain = self-captured PNG-domain improvement over the noisy input (see <a href="results.html">Results</a>).</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- LAB SCENES -->
+  <section class="reveal">
+    <div class="section-label">Lab walk-throughs &middot; 4K capture (shown at 1080p)</div>
+    <h2>Full-resolution scenes</h2>
+    <p>Two longer 4K hand-held captures with a moving person, processed by the full-resolution tiled inference pipeline. Downscaling to 1080p for the web averages out some sensor noise, so the contrast is subtler than the validation scenes &mdash; but the denoised stream stays cleaner and more temporally stable.</p>
+    <div class="gallery">
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">lab&nbsp;&middot;&nbsp;scene 1</span><span class="meta">3840&times;2160 &middot; 30 fps</span></div>
+        <div class="ba-slider">
+          <video class="ba-noisy" data-lazyplay loop muted playsinline preload="none" src="assets/media/vds_lab_scene1_noisy.mp4"></video>
+          <video class="ba-after" data-lazyplay loop muted playsinline preload="none" src="assets/media/vds_lab_scene1_rvidenet.mp4"></video>
+          <span class="ba-label left">Noisy</span><span class="ba-label right">Ours</span>
+          <div class="ba-divider"></div><div class="ba-handle">&#8596;</div>
+        </div>
+      </div>
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">lab&nbsp;&middot;&nbsp;scene 2</span><span class="meta">3840&times;2160 &middot; 30 fps</span></div>
+        <div class="ba-slider">
+          <video class="ba-noisy" data-lazyplay loop muted playsinline preload="none" src="assets/media/vds_lab_scene2_noisy.mp4"></video>
+          <video class="ba-after" data-lazyplay loop muted playsinline preload="none" src="assets/media/vds_lab_scene2_rvidenet.mp4"></video>
+          <span class="ba-label left">Noisy</span><span class="ba-label right">Ours</span>
+          <div class="ba-divider"></div><div class="ba-handle">&#8596;</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a class="btn" href="index.html">&larr; Home</a>
+      <a class="btn" href="method.html">Method</a>
+      <a class="btn" href="results.html">Results</a>
+    </div>
+    <p>Sogang University &middot; Department of Computer Science and Engineering &middot; Capstone 2026</p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

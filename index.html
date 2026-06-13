@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Extreme Low-Light RAW Video Denoising with RViDeNet-ECBAM — removing sensor noise from 0.1 lux RAW video in the RAW domain, and verifying its impact on downstream vision tasks.">
+<meta property="og:title" content="Extreme Low-Light RAW Video Denoising">
+<meta property="og:description" content="RViDeNet-ECBAM: RAW-domain low-light video denoising with an enlarged-receptive-field attention block.">
+<meta property="og:type" content="website">
+<title>Extreme Low-Light RAW Video Denoising · RViDeNet-ECBAM</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="dot"></span> <span>EL<b>RVD</b></span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="method.html">Method</a>
+      <a href="results.html">Results</a>
+      <a href="gallery.html">Gallery</a>
+      <span class="nav-sep"></span>
+      <a href="https://github.com/lsy0163/ELRVD" class="ext" target="_blank" rel="noopener">GitHub</a>
+      <a href="KCC_26.pdf" class="ext" target="_blank" rel="noopener">Paper</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <span class="venue-tag">Capstone Project &middot; 2026</span>
+    <h1 class="title">Extreme Low-Light<br><span class="accent">RAW</span> Video Denoising</h1>
+    <p class="subtitle">Removing sensor noise from 0.1&nbsp;lux RAW video <strong>in the RAW domain</strong> &mdash; and verifying how the restored signal carries through to downstream vision tasks.</p>
+    <p class="affil"><sup>&#9679;</sup> Sogang University &middot; Department of Computer Science and Engineering</p>
+
+    <div class="links">
+      <a class="btn primary" href="https://github.com/lsy0163/ELRVD" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.5v-1.7c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 016 0C17.3 4.7 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A11.5 11.5 0 0023.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>
+        Code
+      </a>
+      <a class="btn" href="KCC_26.pdf" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>
+        Paper (KCC 2026)
+      </a>
+      <a class="btn" href="gallery.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        Video Gallery
+      </a>
+    </div>
+  </header>
+
+  <!-- ============ HERO DEMO (before/after) ============ -->
+  <section class="reveal" style="padding-top: 12px;">
+    <div class="ba-slider" id="hero-ba">
+      <video class="ba-noisy" data-lazyplay loop muted playsinline preload="metadata"
+             src="assets/media/scene7_giraffe_noisy.mp4"></video>
+      <video class="ba-after" data-lazyplay loop muted playsinline preload="metadata"
+             src="assets/media/scene7_giraffe_rvidenet.mp4"></video>
+      <span class="ba-label left">Noisy input</span>
+      <span class="ba-label right">RViDeNet-ECBAM</span>
+      <div class="ba-divider"></div>
+      <div class="ba-handle">&#8596;</div>
+    </div>
+    <p class="ba-hint">scene_giraffe &middot; 0.1&nbsp;lux IMX327 RAW &middot; <strong>drag the handle</strong> to wipe between noisy input and our denoised output</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ============ OVERVIEW ============ -->
+  <section class="reveal">
+    <div class="section-label">Overview</div>
+    <h2>What we built</h2>
+    <p>In low-light capture, the limited light reaching the sensor produces strong <strong>shot noise, read noise, and fixed-pattern noise</strong>. This degrades not only perceptual quality but also downstream tasks such as object detection.</p>
+    <p>Our core model is <strong>RViDeNet-ECBAM</strong>, a modified <a href="https://github.com/cao-cong/RViDeNet" target="_blank" rel="noopener">RViDeNet</a> for RAW video denoising. It takes <strong>three consecutive noisy Bayer RAW frames</strong> and reconstructs the denoised RAW of the center frame, exploiting temporal information from neighbouring frames to suppress noise while preserving structure.</p>
+    <p>Rather than optimizing the sRGB output of an ISP, we deliberately focus on <strong>RAW-to-RAW restoration</strong>: fine-tuning is driven by a RAW reconstruction loss and a temporal consistency loss, without an sRGB loss. Our key architectural change replaces CBAM's 7&times;7 spatial attention with <strong>ECBAM</strong> (channel attention + Enhanced Spatial Attention), greatly enlarging the receptive field so the network can separate globally-distributed low-light noise from real structure.</p>
+    <p>We benchmark against <strong>Noisy input, VBM3D, and FastDVDNet</strong> under an identical RAW&rarr;PNG visualization, evaluating with PSNR, SSIM, LPIPS, tOF and tLPIPS, and additionally probe a <strong>YOLOv11x</strong> downstream detection proxy.</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ============ KEY RESULTS ============ -->
+  <section class="reveal">
+    <div class="section-label">Headline results</div>
+    <h2>From noise to signal, in the dark</h2>
+    <p>In the RAW domain, RViDeNet-ECBAM substantially improves over the noisy input on both the self-captured 0.1&nbsp;lux set and the external ReCRVD set.</p>
+    <div class="stats">
+      <div class="stat">
+        <div class="num">45.0&nbsp;<small>&rarr;</small>&nbsp;57.1</div>
+        <div class="lbl">Self-captured &middot; RAW PSNR (dB)</div>
+      </div>
+      <div class="stat">
+        <div class="num">21.8&nbsp;<small>&rarr;</small>&nbsp;39.3</div>
+        <div class="lbl">ReCRVD &middot; RAW PSNR (dB)</div>
+      </div>
+      <div class="stat">
+        <div class="num">0.016&nbsp;<small>&rarr;</small>&nbsp;1.64</div>
+        <div class="lbl">YOLOv11x &middot; detections / frame</div>
+      </div>
+    </div>
+    <p>On the self-captured set (PNG domain) it reaches the <strong>best PSNR / SSIM / tOF</strong> among all compared methods; on ReCRVD it reaches the <strong>best LPIPS</strong>. In the YOLOv11x downstream proxy, the detected-frame ratio rises from <strong>0.016 to 0.726</strong> &mdash; the strongest of all methods. <a href="results.html">See the full evaluation &rarr;</a></p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ============ SECTION NAV ============ -->
+  <section class="reveal">
+    <div class="section-label">Explore</div>
+    <h2>Dive deeper</h2>
+    <div class="nav-cards">
+      <a class="nav-card" href="method.html">
+        <div class="k">01 / Method</div>
+        <h3>Model &amp; training</h3>
+        <p>The RViDeNet-ECBAM architecture, the ESA attention change, datasets, and the 3-stage training strategy.</p>
+        <span class="go">Read the method &rarr;</span>
+      </a>
+      <a class="nav-card" href="results.html">
+        <div class="k">02 / Results</div>
+        <h3>Evaluation</h3>
+        <p>RAW &amp; PNG metrics, per-scene tables, alpha blending, and the YOLOv11x downstream study.</p>
+        <span class="go">See the numbers &rarr;</span>
+      </a>
+      <a class="nav-card" href="gallery.html">
+        <div class="k">03 / Gallery</div>
+        <h3>Video comparisons</h3>
+        <p>Noisy vs. denoised, side by side, across eight self-captured low-light scenes.</p>
+        <span class="go">Watch the clips &rarr;</span>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a class="btn" href="https://github.com/lsy0163/ELRVD" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn" href="KCC_26.pdf" target="_blank" rel="noopener">Paper (KCC 2026)</a>
+      <a class="btn" href="gallery.html">Gallery</a>
+    </div>
+    <p>Sogang University &middot; Department of Computer Science and Engineering &middot; Capstone 2026</p>
+    <p class="small">Built on RViDeNet (Yue et&nbsp;al., CVPR 2020). Baselines: VBM3D, FastDVDNet.</p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

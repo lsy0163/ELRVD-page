@@ -1,0 +1,11 @@
+# Source (un-optimized) videos — DO NOT COMMIT.
+# The 4K noisy clips here are 400–550 MB each, which exceed GitHub's 100 MB
+# per-file limit. Web-optimized versions live in assets/media/ and are committed.
+/videos/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

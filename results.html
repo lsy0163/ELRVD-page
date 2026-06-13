@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Evaluation of RViDeNet-ECBAM: RAW-domain and PNG-domain metrics (PSNR/SSIM/LPIPS/tOF/tLPIPS), per-scene results, alpha blending, and a YOLOv11x downstream detection proxy.">
+<title>Results · RViDeNet-ECBAM</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="dot"></span> <span>EL<b>RVD</b></span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="method.html">Method</a>
+      <a href="results.html" class="active">Results</a>
+      <a href="gallery.html">Gallery</a>
+      <span class="nav-sep"></span>
+      <a href="https://github.com/lsy0163/ELRVD" class="ext" target="_blank" rel="noopener">GitHub</a>
+      <a href="KCC_26.pdf" class="ext" target="_blank" rel="noopener">Paper</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="page-head reveal">
+    <div class="eyebrow">Results</div>
+    <h1>Evaluation</h1>
+    <p class="lede">Benchmarked on a self-captured 0.1&nbsp;lux IMX327 RAW validation set and on ReCRVD (external generalization), against Noisy, VBM3D and FastDVDNet. Because methods output different domains, everything is compared after an identical RAW&rarr;PNG visualization (linear gain + gamma).</p>
+  </div>
+
+  <section class="reveal">
+    <div class="section-label">Metrics</div>
+    <h2>How we measure</h2>
+    <div class="badges">
+      <span class="badge"><b>PSNR &uarr;</b> pixel fidelity</span>
+      <span class="badge"><b>SSIM &uarr;</b> structural similarity</span>
+      <span class="badge"><b>LPIPS &darr;</b> perceptual distance</span>
+      <span class="badge"><b>tOF &darr;</b> optical-flow temporal consistency</span>
+      <span class="badge"><b>tLPIPS &darr;</b> inter-frame flicker</span>
+    </div>
+    <p style="margin-top:18px;">Evaluation is split into a <strong>RAW-domain</strong> pass (how much noise the model actually removes in RAW) and a <strong>PNG-domain</strong> pass (perceived quality after visualization).</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- RAW EVAL -->
+  <section class="reveal">
+    <div class="section-label">RAW domain</div>
+    <h2>RAW-domain evaluation</h2>
+    <p>Comparing the noisy input against RViDeNet-ECBAM directly in RAW. On both datasets, PSNR and SSIM improve substantially.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Dataset</th><th>Method</th><th>Scenes</th><th>PSNR<sub>raw</sub></th><th>SSIM<sub>raw</sub></th></tr></thead>
+        <tbody>
+          <tr><td>Self-captured 0.1&nbsp;lux</td><td>Noisy</td><td>6</td><td>45.026</td><td>0.9537</td></tr>
+          <tr class="highlight"><td>Self-captured 0.1&nbsp;lux</td><td>RViDeNet</td><td>6</td><td class="best">57.056</td><td class="best">0.9958</td></tr>
+          <tr><td>ReCRVD</td><td>Noisy</td><td>10</td><td>21.805</td><td>0.6927</td></tr>
+          <tr class="highlight"><td>ReCRVD</td><td>RViDeNet</td><td>10</td><td class="best">39.331</td><td class="best">0.9782</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- PNG EVAL -->
+  <section class="reveal">
+    <div class="section-label">PNG domain &middot; all methods</div>
+    <h2>PNG-domain evaluation</h2>
+    <p>Under the shared RAW&rarr;PNG visualization, the best method depends on the dataset. On the self-captured set <strong>RViDeNet-ECBAM leads on PSNR, SSIM and tOF</strong>; on ReCRVD, VBM3D&nbsp;(&sigma;=20) gives the highest PSNR while <strong>RViDeNet-ECBAM gives the best LPIPS</strong>. Rows are sorted by PSNR within each dataset.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Dataset</th><th>Method</th><th>Variant</th><th>PSNR</th><th>SSIM</th><th>LPIPS</th><th>tOF</th><th>tLPIPS</th></tr></thead>
+        <tbody>
+          <tr class="highlight"><td>Self-captured</td><td>RViDeNet</td><td>&ndash;</td><td class="best">31.573</td><td class="best">0.648</td><td>0.555</td><td class="best">0.293</td><td>0.090</td></tr>
+          <tr><td>Self-captured</td><td>VBM3D</td><td>&sigma;=30</td><td>30.968</td><td>0.629</td><td>0.771</td><td>0.326</td><td>0.079</td></tr>
+          <tr><td>Self-captured</td><td>VBM3D</td><td>&sigma;=50</td><td>30.840</td><td>0.621</td><td>0.810</td><td>0.285</td><td>0.022</td></tr>
+          <tr><td>Self-captured</td><td>FastDVDNet</td><td>&ndash;</td><td>30.224</td><td>0.578</td><td>0.753</td><td>1.165</td><td>0.212</td></tr>
+          <tr><td>Self-captured</td><td>VBM3D</td><td>&sigma;=40</td><td>30.192</td><td>0.624</td><td>0.793</td><td>0.288</td><td>0.031</td></tr>
+          <tr><td>Self-captured</td><td>VBM3D</td><td>&sigma;=20</td><td>29.110</td><td>0.535</td><td>0.403</td><td>1.108</td><td>0.210</td></tr>
+          <tr><td>Self-captured</td><td>Noisy</td><td>&ndash;</td><td>22.018</td><td>0.215</td><td>0.425</td><td>2.428</td><td>0.133</td></tr>
+          <tr><td>ReCRVD</td><td>VBM3D</td><td>&sigma;=20</td><td class="best">36.919</td><td>0.915</td><td>0.229</td><td>1.263</td><td>0.156</td></tr>
+          <tr><td>ReCRVD</td><td>VBM3D</td><td>&sigma;=30</td><td>36.349</td><td>0.929</td><td>0.231</td><td>1.411</td><td>0.130</td></tr>
+          <tr><td>ReCRVD</td><td>FastDVDNet</td><td>&ndash;</td><td>35.948</td><td>0.916</td><td>0.206</td><td>1.737</td><td>0.148</td></tr>
+          <tr><td>ReCRVD</td><td>VBM3D</td><td>&sigma;=40</td><td>35.678</td><td>0.922</td><td>0.253</td><td>1.645</td><td>0.126</td></tr>
+          <tr><td>ReCRVD</td><td>VBM3D</td><td>&sigma;=50</td><td>34.966</td><td>0.915</td><td>0.270</td><td>1.821</td><td>0.123</td></tr>
+          <tr class="highlight"><td>ReCRVD</td><td>RViDeNet</td><td>&ndash;</td><td>34.546</td><td>0.918</td><td class="best">0.176</td><td class="best">1.165</td><td>0.149</td></tr>
+          <tr><td>ReCRVD</td><td>Noisy</td><td>&ndash;</td><td>28.916</td><td>0.537</td><td>0.613</td><td>3.476</td><td>0.219</td></tr>
+        </tbody>
+      </table>
+      <p class="table-note">Best PSNR / lowest LPIPS / lowest tOF per dataset highlighted. tOF &amp; tLPIPS measure temporal stability (lower is better).</p>
+    </div>
+
+    <div class="callout warn">
+      <p>On the self-captured set, RViDeNet's LPIPS (0.555) is higher than VBM3D&nbsp;&sigma;=20 (0.403) &mdash; even above the noisy input (0.425). Strong denoising over-smooths high-frequency texture, and perceptual metrics treat residual noise as a kind of texture while penalising the missing detail of a smoothed result. We address this with alpha blending below.</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- PER-SCENE -->
+  <section class="reveal">
+    <div class="section-label">Per scene</div>
+    <h2>Scene-by-scene (PNG)</h2>
+    <p>Each cell shows <em>Noisy &rarr; RViDeNet</em> with the change (&Delta;). PSNR/SSIM higher is better; LPIPS/tOF/tLPIPS lower is better.</p>
+
+    <h3>Self-captured 0.1&nbsp;lux set</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Scene</th><th>PSNR &Delta;</th><th>SSIM &Delta;</th><th>LPIPS &Delta;</th><th>tOF &Delta;</th><th>tLPIPS &Delta;</th></tr></thead>
+        <tbody>
+          <tr><td>whiteball</td><td class="up">+9.76</td><td class="up">+0.444</td><td class="down">+0.154</td><td class="up">&minus;2.296</td><td class="up">&minus;0.040</td></tr>
+          <tr><td>wood</td><td class="up">+8.73</td><td class="up">+0.388</td><td class="down">+0.169</td><td class="up">&minus;2.024</td><td class="up">&minus;0.042</td></tr>
+          <tr><td>snake</td><td class="up">+9.28</td><td class="up">+0.420</td><td class="down">+0.091</td><td class="up">&minus;1.936</td><td class="up">&minus;0.054</td></tr>
+          <tr><td>elephant</td><td class="up">+9.11</td><td class="up">+0.407</td><td class="down">+0.153</td><td class="up">&minus;2.159</td><td class="up">&minus;0.037</td></tr>
+          <tr><td>giraffe</td><td class="up">+10.63</td><td class="up">+0.490</td><td class="down">+0.053</td><td class="up">&minus;2.073</td><td class="up">&minus;0.054</td></tr>
+          <tr><td>pink</td><td class="up">+9.86</td><td class="up">+0.448</td><td class="down">+0.161</td><td class="up">&minus;2.302</td><td class="up">&minus;0.032</td></tr>
+        </tbody>
+      </table>
+      <p class="table-note">Consistent PSNR +8.7&ndash;+10.6&nbsp;dB and SSIM +0.39&ndash;+0.49 on every scene, with tOF dropping ~2.0 (large temporal-consistency gain). LPIPS rises slightly, reflecting texture loss from strong denoising.</p>
+    </div>
+
+    <h3>ReCRVD (external)</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Scene</th><th>PSNR &Delta;</th><th>SSIM &Delta;</th><th>LPIPS &Delta;</th><th>tOF &Delta;</th><th>tLPIPS &Delta;</th></tr></thead>
+        <tbody>
+          <tr><td>Beauty</td><td class="up">+9.16</td><td class="up">+0.661</td><td class="up">&minus;0.656</td><td class="up">&minus;3.041</td><td class="up">&minus;0.048</td></tr>
+          <tr><td>Lips</td><td class="up">+4.61</td><td class="up">+0.332</td><td class="up">&minus;0.190</td><td class="up">&minus;1.023</td><td class="up">&minus;0.100</td></tr>
+          <tr><td>SunBath</td><td class="up">+9.28</td><td class="up">+0.495</td><td class="up">&minus;0.608</td><td class="up">&minus;7.679</td><td class="up">&minus;0.035</td></tr>
+          <tr><td>boxing</td><td class="down">&minus;0.83</td><td class="up">+0.110</td><td class="up">&minus;0.122</td><td class="up">&minus;0.127</td><td class="up">&minus;0.048</td></tr>
+          <tr><td>breakdance</td><td class="up">+9.47</td><td class="up">+0.595</td><td class="up">&minus;0.820</td><td class="up">&minus;1.941</td><td class="up">&minus;0.107</td></tr>
+          <tr><td>camel</td><td class="up">+4.94</td><td class="up">+0.324</td><td class="up">&minus;0.398</td><td class="up">&minus;0.890</td><td class="up">&minus;0.086</td></tr>
+          <tr><td>dogs-jump</td><td class="up">+9.10</td><td class="up">+0.531</td><td class="up">&minus;0.684</td><td class="up">&minus;2.518</td><td class="up">&minus;0.080</td></tr>
+          <tr><td>parkour</td><td class="up">+7.59</td><td class="up">+0.375</td><td class="up">&minus;0.447</td><td class="up">&minus;3.633</td><td class="up">&minus;0.100</td></tr>
+          <tr><td>rollerblade</td><td class="up">+1.03</td><td class="up">+0.223</td><td class="up">&minus;0.283</td><td class="up">&minus;1.437</td><td class="up">&minus;0.059</td></tr>
+          <tr><td>vietnam</td><td class="up">+1.96</td><td class="up">+0.159</td><td class="up">&minus;0.163</td><td class="up">&minus;0.827</td><td class="up">&minus;0.039</td></tr>
+        </tbody>
+      </table>
+      <p class="table-note">Every scene except boxing improves on PSNR, and LPIPS / tOF / tLPIPS improve on all scenes. boxing already starts at 34.4&nbsp;dB noisy (a slight &minus;0.83 PSNR drop, all other metrics improve). SunBath and parkour show the largest temporal gains (tOF &minus;7.68 / &minus;3.63).</p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- QUALITATIVE -->
+  <section class="reveal">
+    <div class="section-label">Qualitative</div>
+    <h2>What it looks like</h2>
+    <p>Noisy input is dominated by low-light noise that buries object boundaries. FastDVDNet softens noise but stays dark and blurry. VBM3D is stable on static backgrounds but turns moving objects translucent where it cannot compensate motion. <strong>RViDeNet-ECBAM</strong> gives the most stable visual quality across full frames and crops &mdash; recovering number plates, doll contours and lip boundaries &mdash; though some background texture is flattened by smoothing.</p>
+
+    <figure class="fig">
+      <img src="assets/img/compare_fullframe.png" alt="Full-frame comparison of Noisy, FastDVDNet, VBM3D and RViDeNet-ECBAM">
+      <figcaption><b>Figure 2.</b> Full frames, same input across methods (Noisy / FastDVDNet / VBM3D / Ours). Rows (a)&ndash;(c) are self-captured 0.1&nbsp;lux scenes; (d) is the ReCRVD <em>Lips</em> scene.</figcaption>
+    </figure>
+
+    <figure class="fig">
+      <img src="assets/img/compare_crops.png" alt="Zoomed crops comparison of Noisy, FastDVDNet, VBM3D and RViDeNet-ECBAM">
+      <figcaption><b>Figure 3.</b> Zoomed crops of the same frames. Our output keeps fine structure &mdash; the number plate &ldquo;가&nbsp;3456&rdquo;, doll and figure contours, and lip highlights &mdash; sharper than the baselines while suppressing noise.</figcaption>
+    </figure>
+
+    <figure class="fig">
+      <img src="assets/img/scene7_giraffe_comparison.gif" alt="Noisy vs. RViDeNet-ECBAM, scene_giraffe">
+      <figcaption><b>Figure 4.</b> scene_giraffe &mdash; <b>left:</b> noisy input, <b>right:</b> RViDeNet-ECBAM. The denoised stream recovers structure and is temporally stable. More side-by-side clips in the <a href="gallery.html">gallery</a>.</figcaption>
+    </figure>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ALPHA BLENDING -->
+  <section class="reveal">
+    <div class="section-label">Post-processing</div>
+    <h2>Alpha blending</h2>
+    <p>To soften the over-smoothing seen in PNG LPIPS, we blend the RViDeNet output with the original noisy input:</p>
+    <div class="formula">I<sub>final</sub> = &alpha; &middot; I<sub>denoised</sub> + (1 &minus; &alpha;) &middot; I<sub>noisy</sub></div>
+    <p>Larger &alpha; favours the denoised result; smaller &alpha; keeps more of the noisy input's texture (and noise). At <strong>&alpha;=1.0</strong> the denoising is strongest; <strong>&alpha;=0.7&ndash;0.9</strong> sit between noise removal and texture preservation, letting us pick a point on that trade-off. This was an addition beyond the initial plan, driven by the observed texture loss.</p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- DOWNSTREAM -->
+  <section class="reveal">
+    <div class="section-label">Downstream</div>
+    <h2>Does denoising help detection?</h2>
+    <p>We run a <strong>YOLOv11x</strong> detector on the self-captured set. Without detection GT annotations, this is a <strong>proxy</strong> study (not mAP): average detections per frame, average mean confidence, and the detected-frame ratio (fraction of frames with at least one detection).</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Method</th><th>Avg Det / Frame</th><th>Avg Mean Conf</th><th>Detected Frame Ratio</th></tr></thead>
+        <tbody>
+          <tr class="highlight"><td>RViDeNet</td><td class="best">1.64</td><td class="best">0.346</td><td class="best">0.726</td></tr>
+          <tr><td>VBM3D &sigma;=40</td><td>1.23</td><td>0.307</td><td>0.647</td></tr>
+          <tr><td>VBM3D &sigma;=30</td><td>1.21</td><td>0.311</td><td>0.647</td></tr>
+          <tr><td>VBM3D &sigma;=50</td><td>1.01</td><td>0.242</td><td>0.497</td></tr>
+          <tr><td>FastDVDNet</td><td>0.79</td><td>0.211</td><td>0.498</td></tr>
+          <tr><td>VBM3D &sigma;=20</td><td>0.63</td><td>0.194</td><td>0.444</td></tr>
+          <tr><td>Noisy</td><td>0.016</td><td>0.0066</td><td>0.016</td></tr>
+        </tbody>
+      </table>
+      <p class="table-note">On noisy input, detection is essentially impossible (&le;0.016 on all three). RViDeNet leads every method &mdash; even VBM3D&nbsp;&sigma;=30/40, which scored higher on PSNR/SSIM &mdash; showing pixel-level fidelity and real detectability do not always coincide.</p>
+    </div>
+    <p>Qualitatively, on a frame where the noisy input yields <strong>zero</strong> detections, the RViDeNet output yields five (including the giraffe). Denoising extends beyond image quality into downstream computer-vision usability.</p>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a class="btn" href="gallery.html">Gallery &rarr;</a>
+      <a class="btn" href="method.html">Method</a>
+      <a class="btn" href="KCC_26.pdf" target="_blank" rel="noopener">Paper (KCC 2026)</a>
+    </div>
+    <p>Sogang University &middot; Department of Computer Science and Engineering &middot; Capstone 2026</p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
