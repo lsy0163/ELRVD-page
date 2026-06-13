@@ -210,6 +210,28 @@
       <p class="table-note">On noisy input, detection is essentially impossible (&le;0.016 on all three). RViDeNet leads every method &mdash; even VBM3D&nbsp;&sigma;=30/40, which scored higher on PSNR/SSIM &mdash; showing pixel-level fidelity and real detectability do not always coincide.</p>
     </div>
     <p>Qualitatively, on a frame where the noisy input yields <strong>zero</strong> detections, the RViDeNet output yields five (including the giraffe). Denoising extends beyond image quality into downstream computer-vision usability.</p>
+
+    <h3>Detections on noisy vs. denoised video</h3>
+    <p>The same YOLOv11x detector run on the noisy input and on our output, with boxes drawn on each, <strong>playing side by side</strong>. Watch both at once: the noisy stream barely registers a detection, while the denoised stream picks up objects consistently.</p>
+    <div class="duo-stack">
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">giraffe</span><span class="meta">YOLOv11x</span></div>
+        <div class="duo">
+          <div class="vcard"><span class="vtag">Noisy + YOLO</span><video data-lazyplay loop muted playsinline preload="none" src="assets/media/yolo_giraffe_noisy.mp4"></video></div>
+          <div class="vcard ours"><span class="vtag ours">Ours + YOLO</span><video data-lazyplay loop muted playsinline preload="none" src="assets/media/yolo_giraffe_rvidenet.mp4"></video></div>
+        </div>
+      </div>
+
+      <div class="gitem">
+        <div class="gtitle"><span class="name">whiteball</span><span class="meta">YOLOv11x</span></div>
+        <div class="duo">
+          <div class="vcard"><span class="vtag">Noisy + YOLO</span><video data-lazyplay loop muted playsinline preload="none" src="assets/media/yolo_whiteball_noisy.mp4"></video></div>
+          <div class="vcard ours"><span class="vtag ours">Ours + YOLO</span><video data-lazyplay loop muted playsinline preload="none" src="assets/media/yolo_whiteball_rvidenet.mp4"></video></div>
+        </div>
+      </div>
+
+    </div>
   </section>
 
 </div>
