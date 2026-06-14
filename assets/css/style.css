@@ -133,7 +133,8 @@ h1.title .accent { color: var(--accent); }
 
 .subtitle {
   font-size: clamp(1rem, 2vw, 1.22rem);
-  color: var(--ink-soft); max-width: 680px; margin: 0 auto 30px; font-weight: 300;
+  color: var(--ink-soft); max-width: 780px; margin: 0 auto 30px; font-weight: 300;
+  text-wrap: balance;
 }
 
 .affil { font-size: 0.95rem; color: var(--ink-mute); margin-bottom: 28px; }
