@@ -47,7 +47,7 @@
     <p>The network takes consecutive noisy Bayer RAW frames <em>I<sup>n</sup><sub>[t&minus;1:t+1]</sub></em> and outputs the denoised RAW frame <em>O<sup>raw</sup><sub>t</sub></em> for the center frame. It is organised into six stages:</p>
 
     <figure class="fig padded">
-      <img src="assets/img/architecture_rvidenet_ecbam.png" alt="RViDeNet-ECBAM architecture diagram">
+      <img src="assets/img/fig_arch_modern_1.png" alt="RViDeNet-ECBAM architecture diagram">
       <figcaption><b>Figure 1.</b> RViDeNet-ECBAM. A frozen pre-denoising module guides deformable alignment offsets; the input is packed into four Bayer sub-frames (R / G1 / G2 / B) that pass through shared-weight Alignment &rarr; Non-Local Attention &rarr; Temporal Fusion paths, followed by Spatial Fusion, the <b>ECBAM</b> attention block, and a global residual connection.</figcaption>
     </figure>
 
